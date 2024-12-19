@@ -1,5 +1,4 @@
 import streamlit as st
-from streamlit_server_state import server_state, server_state_lock
 
 # Function to load local CSS
 def local_css(file_name):
@@ -48,28 +47,28 @@ st.markdown(
 
 st.title("McUnSon Book Swapper")
 
-# Initialise global state for remaining names using server_state
-with server_state_lock["remaining_names"]:  # Lock the "remaining_names" state for thread-safety
-    if "remaining_names" not in server_state:
-        server_state.remaining_names = ["Tom", "Paul", "Sean", "Megs", "Claire", "Anne", "Cam"]
+# Hardcoded list of names
+names = ["Tom", "Paul", "Sean", "Megs", "Claire", "Anne", "Cam"]
+
+# Initialise session state variables
+if "remaining_names" not in st.session_state:
+    st.session_state.remaining_names = names.copy()
+
+if "user_clicked" not in st.session_state:
+    st.session_state.user_clicked = False
 
 # Check if the user has already clicked
-if "user_clicked" not in server_state:
-    server_state.user_clicked = False
-
-# Check if the user has already clicked
-if server_state.user_clicked:
+if st.session_state.user_clicked:
     st.image("you-didnt-say-the-magic-word-ah-ah.gif")
 else:
     # Button to show a name
     if st.button("Get a Name"):
-        with server_state_lock["remaining_names"]:
-            if server_state.remaining_names:
-                selected_name = server_state.remaining_names.pop(0)
-                st.success(f"You are getting a book for: {selected_name}")
-                server_state.user_clicked = True  # Mark the user as having clicked
-            else:
-                st.warning("No more names left!")
+        if st.session_state.remaining_names:
+            selected_name = st.session_state.remaining_names.pop(0)
+            st.success(f"You are getting a book for: {selected_name}")
+            st.session_state.user_clicked = True  # Mark the user as having clicked
+        else:
+            st.warning("No more names left!")
 
-# Display the current global state count (for debug purposes)
-st.write("Remaining names:", server_state.remaining_names)
+# Display the remaining names (optional, for testing purposes)
+st.write("Remaining names:", st.session_state.remaining_names)
